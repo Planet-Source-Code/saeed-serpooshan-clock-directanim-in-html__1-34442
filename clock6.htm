@@ -1,0 +1,155 @@
+<HTML>
+<HEAD>
+<TITLE>DirectAnimation CLOCK sample, By S.Serpooshan</TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#3f3f3f" LINK="#0033CE" >
+
+<span id="spObj">
+<OBJECT align=right classid="CLSID:B6FFC24C-7E13-11D0-9B47-00C04FC2F51D" id=DAControl 
+	style="LEFT: 0px; TOP: 0px; align: right">
+	<PARAM NAME="OpaqueForHitDetect" VALUE="1">
+	<PARAM NAME="UpdateInterval" VALUE="0.033"></OBJECT>
+</span>
+
+<FONT FACE="Tahoma" Style="Font-Size:25;">
+<br><br><br><br><br><br><br>
+</Font>
+<p align="right" >
+<FONT FACE="Tahoma" COLOR=WHITE Style="Font-Size:12;" onclick="vbscript:msgbox('This page is created by Saeid Serpooshan;'+space(10)+chr(13)+chr(13)+'Using Direct Animation technic in vbscript.')">
+By: S.Serpooshan       -       2001 &nbsp;&nbsp;&nbsp;&nbsp;<br>
+</Font>
+</p>
+
+<SCRIPT LANGUAGE="VBScript">
+<!--
+
+  Set m = DAControl.PixelLibrary
+  pi = 3.14159265359
+
+  R_Numbers=82.5
+  R1=.055
+  R2=78
+ 
+  dim swt,itimerCount
+
+ Sub retimer()
+  a=time 'this statement is need sometimes without any real cause!
+  itimerCount=itimerCount+1
+  if abs(timer-itimerCount)>1 then
+   a=spObj.InnerHtml
+   'spObj.InnerHtml=""
+   spObj.InnerHtml=a
+   window_OnLoad
+  end if
+ End Sub
+
+  Sub window_onLoad()
+    'Get the current time and break it down into hours, minutes, and seconds.
+    a = time
+    hr1 = hour(time)
+    min1 = minute(time)
+    sec1 = second(time)
+ 
+    'Create the final clock image.
+    Set clock =  m.Overlay(hands(hr1,min1,sec1),face())
+ 
+    'Display the clock.
+    DAControl.Image = clock
+
+    'Set the background in case of a non-windowless browser (such as IE3).
+    'DAControl.BackgroundImage = m.SolidColorImage(m.Black)
+
+    'Start the animation.
+    DAControl.Start
+    
+    if swt=empty then swt=window.setinterval("Retimer",1000,"VbScript")
+    itimerCount=timer
+  End Sub
+  
+  Function face()
+    'Create the background for the clock.
+    'fonts:
+    Set fs1 = m.Font("Lucida Sans Unicode",18,m.ColorRGB255(255,245,0)).Italic() 'font of Arian Word
+    Set fs2 = m.Font("Georgia",12,m.black) 'font of Time Word
+    Set fs3 = m.Font("Georgia",12,m.ColorRGB255(130,130,80)).Bold() 'font of Numbers
+
+    Set lineStyle = m.DefaultLineStyle.Color(m.ColorRGB255(255,245,0))
+    Set fillStyle = m.SolidColorImage(m.ColorRGB255(255,245,0))
+
+    Set txtPath1 = m.StringPathAnim(m.DAString("ARIAN"), fs1)
+    'Set textpcs1 = txtPath1.fill(lineStyle, fillStyle).Transform(m.Translate2(-3,-40))
+    Set textpcs1= m.StringImage("ARIAN",fs1).Transform(m.Translate2(-3,-40))
+
+    Set txtPath2 = m.StringPathAnim(m.DAString("Time"), fs2)
+    Set textpcs2 = txtPath2.fill(lineStyle, fillStyle).Transform(m.Translate2(-3,30))
+    'Set textpcs2= m.StringImage("Time",fs2).Transform(m.Translate2(-3,30))
+
+    'Set fgColor = m.ColorRGB255(150,150,0)
+    'Set bgColor = m.ColorRGB255(0,0,0)
+
+    'Set bgFill= m.RadialGradientRegularPoly(fgColor,bgColor,6,3)
+
+    'Set bgFill = bgFill.Transform(m.Scale2Uniform(.06))
+
+    'Set background =bgFill ' m.Oval(130,130).Fill(m.DefaultLineStyle,bgFill)
+
+    Set text = m.Overlay(textpcs1,textpcs2)
+
+    'Create the numbers for the clock.
+     Set fs2 = m.Font("Verdana",12,m.White).Bold()
+     For i = 1 To 12
+       Set vec = m.Vector2(R_Numbers,0).Transform(m.Rotate2(-pi/6*(i-3)))
+       Set text = m.Overlay(m.StringImage(i,fs3).Transform(m.Compose2(m.Translate2Vector(vec), _
+       m.Scale2Uniform(1.5))),text)
+     Next 
+
+    Set text = text.Transform(m.Translate2(1,9))
+
+    'Put the numbers on top of the background.
+    set face=text
+    'Set face = m.Overlay(text,background)
+
+  End Function
+
+  Function hands(hr,min,sec)
+    'Create the hour, minute and second hands of the clock.
+    Set bvr60 = m.DANumber(60)
+    Set secFromMidnight = m.floor(m.Add(m.DANumber(hr*3600+min*60+sec),m.LocalTime))
+    Set secBvr = m.Mod(secFromMidnight,bvr60)
+    set mintmp1=m.floor(m.Div(secFromMidnight,bvr60))
+    Set minBvr = m.floor(mintmp1)
+    Set hrBvr = m.Mod(m.Div(secFromMidnight,m.DANumber(3600)),m.DANumber(12))
+    
+    'ptsSec = Array( -5, -1, 80, -1, 80, 1, -5,1 )
+    'ptsMin = Array(-5, -3, 73, -1.5, 73, 1.5, -5, 3 )
+    'ptsHr = Array(-5, -4, 58, -2, 58, 2, -5, 4 )
+    
+    tt2=R2*(73/78):tt3=R2*(50/78)
+    ptsSec = Array( -12, -1.4, R2, -1.2, R2, 1.2, -12,1.4 )
+    ptsMin = Array(-5, -3, tt2, -1.5, tt2, 1.5, -5, 3 )
+    ptsHr = Array(-5, -4, tt3, -2, tt3, 2, -5, 4 )
+
+    Set temp1 = m.Mul(m.DANumber(-pi/30),m.Sub(secBvr,m.DANumber(15)))
+    Set temp2 = m.Mul(m.DANumber(-pi/30),m.Sub(minBvr,m.DANumber(15)))
+    Set temp3 = m.Mul(m.DANumber(-pi/6),m.Sub(hrBvr,m.DANumber(3)))
+
+    Set imgSec = m.PolyLine(ptsSec).Fill(m.DefaultLineStyle,m.SolidColorImage(m.ColorRGB255(250,200,120)))
+    Set imgSec = imgSec.TransForm(m.Rotate2Anim(temp1))
+
+    Set imgMin = m.PolyLine(ptsMin).Fill(m.DefaultLineStyle,m.SolidColorImage(m.ColorRGB255(200,200,120)))
+    Set imgMin = imgMin.TransForm(m.Rotate2Anim(temp2))
+
+    Set imgHr = m.PolyLine(ptsHr).Fill(m.DefaultLineStyle,m.SolidColorImage(m.ColorRGB255(200,200,120)))
+    Set imgHr = imgHr.TransForm(m.Rotate2Anim(temp3))
+	
+    Set hands = m.Overlay(imgSec,m.Overlay(imgMin,imgHr))
+
+  End Function
+
+ 
+-->
+</SCRIPT>
+
+</BODY>
+</HTML>
